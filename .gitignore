@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files (File rác khi chạy Python)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cấu trúc môi trường ảo (Virtual Environments) - RẤT QUAN TRỌNG
+# Không nên push thư viện cài đặt lên GitHub, người khác sẽ cài lại từ requirements.txt
+venv/
+env/
+.venv/
+ENV/
+
+# File chứa biến môi trường (Thông tin bảo mật: API Key, Database URL)
+# TUYỆT ĐỐI KHÔNG PUSH FILE NÀY
+.env
+
+# Các folder cài đặt thư viện (nếu dùng pipenv hoặc poetry)
+.venv
+bin/
+lib/
+develop-eggs/
+dist/
+eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# File rác của hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Thư mục log
+*.log
