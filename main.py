@@ -7,47 +7,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 import numpy as np
-import pandas as pd
-
- # ── Algorithms ────────────────────────────────────────────────
-
-def qr_demcomposition(A):
-    m, n = A.shape
-    Q = np.zeros((m, n))
-    R = np.zeros((n, n))
-
-    for j in range(n):
-        v = A[:, j]
-        for i in range(j):
-            R[i, j] = np.dot(Q[:, i], A[:, j])
-            v = v - R[i, j] * Q[:, i]
-        R[j, j] = np.linalg.norm(v)
-        Q[:, j] = v / R[j, j]
-
-    return Q, R
-
-def solve_linear_system(Q, R, b):
-    y = np.dot(Q.T, b)
-    n = R.shape[0]
-    x = np.zeros(n)
-
-    for i in reversed(range(n)):
-        x[i] = (y[i] - np.dot(R[i, i+1:], x[i+1:])) / R[i, i]
-
-    return x
-
-def solve_eigenvalues(A, iterations = 100, tolerance=1e-10):
-    A_k = A.astype(float)
-
-    for _ in range(iterations):
-        Q, R = qr_demcomposition(A_k)
-        A_k = R @ Q
-
-        off_diag = A_k - np.diag(np.diag(A_k))
-        if np.linalg.norm(off_diag) < tolerance:
-            break
-
-    return np.diag(A_k)
+import algorithm
 
 # ── Styles ────────────────────────────────────────────────────
 STYLESHEET = """
@@ -240,14 +200,14 @@ class InputPanel(QFrame):
 
         hdr.addWidget(lbl("m:", "sublabel"))
         self.spin_m = QSpinBox()
-        self.spin_m.setRange(2, 7)
+        self.spin_m.setRange(2, 25)
         self.spin_m.setValue(3)
         self.spin_m.setToolTip("Number of rows m")
         hdr.addWidget(self.spin_m)
 
         hdr.addWidget(lbl("n:", "sublabel"))
         self.spin_n = QSpinBox()
-        self.spin_n.setRange(2, 7)
+        self.spin_n.setRange(2, 25)
         self.spin_n.setValue(3)
         self.spin_n.setToolTip("Number of columns n  (n ≤ m)")
         hdr.addWidget(self.spin_n)
@@ -502,27 +462,24 @@ def fmt_vector(vec, title=""):
 def run_decompose(A, qr_panel):
     A = np.array(A)
     m, n = A.shape#
-    Q, R = qr_demcomposition(A)
+    Q, R = algorithm.qr_demcomposition(A)
 
-    qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n})  — not yet implemented"))
-    qr_panel.set_R(fmt_matrix(R, f"Matrix R  ({n} × {n})  — not yet implemented"))
+    qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n})"))
+    qr_panel.set_R(fmt_matrix(R, f"Matrix R  ({n} × {n})"))
 
 
-def run_solve(A, b, qr_panel, sol_panel):
+def run_solve(A, b, sol_panel):
     A = np.array(A)
-    m, n = A.shape
-    Q, R = qr_demcomposition(A)
-    x = solve_linear_system(Q, R, b)
+    Q, R = algorithm.qr_demcomposition(A)
+    x = algorithm.solve_linear_system(Q, R, b)
     
-    qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n})  — not yet implemented"))
-    qr_panel.set_R(fmt_matrix(R, f"Matrix R  ({n} × {n})  — not yet implemented"))
-    sol_panel.set_solution(fmt_vector(x, "Solution x  — not yet implemented"))
+    sol_panel.set_solution(fmt_vector(x, "Solution x"))
 
 
 def run_eigen(A, iters, panel):
     A = np.array(A)
     n = len(A)
-    eigenvalue = solve_eigenvalues(A) 
+    eigenvalues = algorithm.solve_eigenvalues(A, iters) 
 
     #QR iteration
 
@@ -535,9 +492,9 @@ def run_eigen(A, iters, panel):
         return
 
     panel.set_eigenvalues(
-        "<p style='color:#757575; font-size:11px;'>Not yet implemented</p>"
+        f"<p style='color:#757575; font-size:11px;'>{eigenvalues}</p>"
     )
-    panel.set_log("")
+    #panel.set_log("")
     panel.set_convergence(
         f"<p style='color:#757575; font-size:12px;'>Pending — {iters} iterations requested</p>"
     )
