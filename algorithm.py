@@ -1,5 +1,6 @@
 import numpy as np
-import pandas as pd
+
+ # ── Algorithms ────────────────────────────────────────────────
 
 def qr_demcomposition(A):
     m, n = A.shape
@@ -26,15 +27,17 @@ def solve_linear_system(Q, R, b):
 
     return x
 
-def eigenvalues(A, iterations = 100, tolerance=1e-10):
+def solve_eigenvalues(A, iterations = 999, tolerance=1e-10):
     A_k = A.astype(float)
+    actual_iters = iterations
 
-    for _ in range(iterations):
+    for i in range(iterations + 1):
         Q, R = qr_demcomposition(A_k)
         A_k = R @ Q
 
         off_diag = A_k - np.diag(np.diag(A_k))
         if np.linalg.norm(off_diag) < tolerance:
+            actual_iters = i + 1
             break
 
-    return np.diag(A_k)
+    return np.diag(A_k), actual_iters
