@@ -25,4 +25,4 @@ Libraries used in this project include:
 - PyQt5-stubs
 
 ##### Step 4. Run the project
-'''bash python main.py'''
+'''python main.py'''
