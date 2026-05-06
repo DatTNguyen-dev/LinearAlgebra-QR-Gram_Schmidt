@@ -6,6 +6,50 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
+import numpy as np
+import pandas as pd
+
+ # ── Algorithms ────────────────────────────────────────────────
+
+def qr_demcomposition(A):
+    m, n = A.shape
+    Q = np.zeros((m, n))
+    R = np.zeros((n, n))
+
+    for j in range(n):
+        v = A[:, j]
+        for i in range(j):
+            R[i, j] = np.dot(Q[:, i], A[:, j])
+            v = v - R[i, j] * Q[:, i]
+        R[j, j] = np.linalg.norm(v)
+        Q[:, j] = v / R[j, j]
+
+    return Q, R
+
+def solve_linear_system(Q, R, b):
+    y = np.dot(Q.T, b)
+    n = R.shape[0]
+    x = np.zeros(n)
+
+    for i in reversed(range(n)):
+        x[i] = (y[i] - np.dot(R[i, i+1:], x[i+1:])) / R[i, i]
+
+    return x
+
+def solve_eigenvalues(A, iterations = 100, tolerance=1e-10):
+    A_k = A.astype(float)
+    actual_iters = iterations
+
+    for i in range(iterations):
+        Q, R = qr_demcomposition(A_k)
+        A_k = R @ Q
+
+        off_diag = A_k - np.diag(np.diag(A_k))
+        if np.linalg.norm(off_diag) < tolerance:
+            actual_iters = i + 1
+            break
+
+    return np.diag(A_k), actual_iters
 
 # ── Styles ────────────────────────────────────────────────────
 STYLESHEET = """
@@ -198,14 +242,14 @@ class InputPanel(QFrame):
 
         hdr.addWidget(lbl("m:", "sublabel"))
         self.spin_m = QSpinBox()
-        self.spin_m.setRange(2, 7)
+        self.spin_m.setRange(2, 25)
         self.spin_m.setValue(3)
         self.spin_m.setToolTip("Number of rows m")
         hdr.addWidget(self.spin_m)
 
         hdr.addWidget(lbl("n:", "sublabel"))
         self.spin_n = QSpinBox()
-        self.spin_n.setRange(2, 7)
+        self.spin_n.setRange(2, 25)
         self.spin_n.setValue(3)
         self.spin_n.setToolTip("Number of columns n  (n ≤ m)")
         hdr.addWidget(self.spin_n)
@@ -409,35 +453,20 @@ class EigenPanel(QFrame):
         hdr = QHBoxLayout()
         hdr.addWidget(lbl("Eigenvalues  —  QR Iteration", "title"))
         hdr.addStretch()
-        hdr.addWidget(lbl("Iterations:", "sublabel"))
-        self.iter_spin = QSpinBox()
-        self.iter_spin.setRange(1, 200)
-        self.iter_spin.setValue(20)
-        hdr.addWidget(self.iter_spin)
+        # Đã xóa 2 dòng chứa chữ "Iterations:" và cục QSpinBox ở đây
         lay.addLayout(hdr)
         lay.addWidget(divider())
 
-        self.tabs = QTabWidget()
-        for name in ["Eigenvalues λ", "Iteration Log", "Convergence"]:
-            w = QWidget()
-            v = QVBoxLayout(w)
-            v.setContentsMargins(0, 6, 0, 0)
-            v.addWidget(make_output())
-            self.tabs.addTab(w, name)
-        lay.addWidget(self.tabs, 1)
+        self.te_result = make_output("Results will appear here…")
+        lay.addWidget(self.te_result, 1)
         lay.addWidget(divider())
 
         self.btn_eigen = QPushButton("Find Eigenvalues")
         self.btn_eigen.setObjectName("btn_secondary")
         lay.addWidget(self.btn_eigen)
 
-    def _te(self, idx):
-        return self.tabs.widget(idx).layout().itemAt(0).widget()
-
-    def set_eigenvalues(self, html): self._te(0).setHtml(html)
-    def set_log(self, html):         self._te(1).setHtml(html)
-    def set_convergence(self, html): self._te(2).setHtml(html)
-
+    def set_result(self, html): 
+        self.te_result.setHtml(html)
 
 
 # ── Formatters ────────────────────────────────────────────────
@@ -455,54 +484,48 @@ def fmt_vector(vec, title=""):
     return "<pre>" + "\n".join(lines) + "</pre>"
 
 
-# ── Algorithms ────────────────────────────────────────────────
+ # ── Run Algorithms ────────────────────────────────────────────────
 
 def run_decompose(A, qr_panel):
-    m = len(A)
-    n = len(A[0])
+    A = np.array(A)
+    m, n = A.shape#
+    Q, R = qr_demcomposition(A) 
 
-    #decomposition algorithm here
-
-    Q = [[0.0] * n for _ in range(m)]   
-    R = [[0.0] * n for _ in range(n)]   
-    qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n})  — not yet implemented"))
-    qr_panel.set_R(fmt_matrix(R, f"Matrix R  ({n} × {n})  — not yet implemented"))
+    qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n}) "))
+    qr_panel.set_R(fmt_matrix(R, f"Matrix R  ({n} × {n}) "))
 
 
 def run_solve(A, b, qr_panel, sol_panel):
-    m = len(A)
-    n = len(A[0])
-
-    #algorithm solve Ax = b
-
-    Q = [[0.0] * n for _ in range(m)]  
-    R = [[0.0] * n for _ in range(n)]  
-    x = [0.0] * n                      
-    qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n})  — not yet implemented"))
-    qr_panel.set_R(fmt_matrix(R, f"Matrix R  ({n} × {n})  — not yet implemented"))
-    sol_panel.set_solution(fmt_vector(x, "Solution x  — not yet implemented"))
+    A = np.array(A)
+    m, n = A.shape
+    Q, R = qr_demcomposition(A)
+    x = solve_linear_system(Q, R, b)
+    
+    qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n}) "))
+    qr_panel.set_R(fmt_matrix(R, f"Matrix R  ({n} × {n})"))
+    sol_panel.set_solution(fmt_vector(x, "Solution x :"))
 
 
 def run_eigen(A, iters, panel):
+    A = np.array(A)
     n = len(A)
 
-    #QR iteration
-
     if len(A[0]) != n:
-        panel.set_eigenvalues(
+        panel.set_result(
             "<p style='color:#D32F2F;'>⚠ Eigenvalues require a square matrix.</p>"
         )
-        panel.set_log("")
-        panel.set_convergence("")
         return
 
-    panel.set_eigenvalues(
-        "<p style='color:#757575; font-size:11px;'>Not yet implemented</p>"
-    )
-    panel.set_log("")
-    panel.set_convergence(
-        f"<p style='color:#757575; font-size:12px;'>Pending — {iters} iterations requested</p>"
-    )
+    eigenvalues, actual_iters = solve_eigenvalues(A, iterations=iters) 
+
+    lines = [f"<span style='color:#757575; font-size:12px;'>Converged after <b>{actual_iters}</b> iterations</span><br>"]
+    lines.append("<b>Eigenvalues λ:</b>")
+    
+    for i, val in enumerate(eigenvalues):
+        lines.append(f"  λ{i+1} = {val:.6f}")
+
+    html_output = "<pre>" + "\n".join(lines) + "</pre>"
+    panel.set_result(html_output)
 
 
 
@@ -570,9 +593,8 @@ class MainWindow(QMainWindow):
 
     def on_eigen(self):
         A = self.input_panel.get_matrix()
-        iters = self.eigen_panel.iter_spin.value()
-        run_eigen(A, iters, self.eigen_panel)
-        self.statusBar().showMessage(f"✓  Eigenvalue search complete after {iters} iterations")
+        run_eigen(A, 100, self.eigen_panel)
+        self.statusBar().showMessage("✓  Eigenvalue search complete")
 
 
 if __name__ == "__main__":
