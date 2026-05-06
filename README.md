@@ -24,6 +24,6 @@ Libraries used in this project include:
 - PyQt5-stubs
 
 #### Step 4. Run the project
-'''bash cd ~ 
+```bash cd ~ 
 python main.py
-'''
+```
