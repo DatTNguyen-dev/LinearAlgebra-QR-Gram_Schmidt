@@ -5,7 +5,6 @@
 
 **Method 1:** Use this command in your terminal:
 ```bash cd ~
-
 git clone https://github.com/DatTNguyen-dev/LinearAlgebra-QR-Gram_Schmidt.git
 ```
 **Method 2:**
@@ -25,4 +24,6 @@ Libraries used in this project include:
 - PyQt5-stubs
 
 #### Step 4. Run the project
-'''python main.py'''
+'''bash cd ~ 
+python main.py
+'''
