@@ -446,7 +446,7 @@ def fmt_vector(vec, title=""):
 def run_decompose(A, qr_panel):
     A = np.array(A)
     m, n = A.shape#
-    Q, R = algorithm.qr_demcomposition(A) 
+    Q, R = algorithm.qr_decomposition(A) 
 
     qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n}) "))
     qr_panel.set_R(fmt_matrix(R, f"Matrix R  ({n} × {n}) "))
@@ -455,7 +455,7 @@ def run_decompose(A, qr_panel):
 def run_solve(A, b, qr_panel, sol_panel):
     A = np.array(A)
     m, n = A.shape
-    Q, R = algorithm.qr_demcomposition(A)
+    Q, R = algorithm.qr_decomposition(A)
     x = algorithm.solve_linear_system(Q, R, b)
     
     qr_panel.set_Q(fmt_matrix(Q, f"Matrix Q  ({m} × {n}) "))
