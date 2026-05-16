@@ -2,7 +2,7 @@ import numpy as np
 
  # ── Algorithms ────────────────────────────────────────────────
 
-def qr_demcomposition(A):
+def qr_decomposition(A):
     m, n = A.shape
     Q = np.zeros((m, n))
     R = np.zeros((n, n))
@@ -32,7 +32,7 @@ def solve_eigenvalues(A, iterations = 999, tolerance=1e-10):
     actual_iters = iterations
 
     for i in range(iterations + 1):
-        Q, R = qr_demcomposition(A_k)
+        Q, R = qr_decomposition(A_k)
         A_k = R @ Q
 
         off_diag = A_k - np.diag(np.diag(A_k))

@@ -3,4 +3,3 @@ qt5-applications
 qtwidgets
 PyQt5-stubs
 numpy
-pandas
