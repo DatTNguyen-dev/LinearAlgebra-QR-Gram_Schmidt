@@ -15,6 +15,8 @@ Click the "Code" button and select "Download ZIP". Then, extract the downloaded 
 
 #### Step 3. Set up the environment and install libraries
 ![alt text](image/image_2.png)
+
+
 Choose "Python: Create Environment" and select "Venv". Then, select the Python version you want to use. After that, click on the "Install" button to install the required libraries.
 Libraries used in this project include:
 - Numpy.
