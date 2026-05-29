@@ -1,5 +1,7 @@
+numpy
+pandas
+matplotlib
 pyqt5
 qt5-applications
 qtwidgets
 PyQt5-stubs
-numpy
